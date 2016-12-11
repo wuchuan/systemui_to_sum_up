@@ -3,25 +3,33 @@
     基于android6.0 源码分析
 		
 		前提：
-		ipc通信机制bindler
+		ipc通信机制binder
     
 #tcl项目完成的开发事项
-  1. 最近应用的清除
+  1. 最近应用的一键清除
+*实现一些最近应用的清理，杀死后台不使用activity
   2. 单手模式的开发
+*整个屏幕显示的按比例缩小
   3. 通知自定义背景颜色的加入
-  4. 快捷项的加如
+*每个应用的通知颜色可以自定义（默认白色）
+  4. 快捷项的加入
+  *()
   a. waves
   b. 单手模式
   c.静音时通知的弹出
 
 ##1. 通知机制的介绍
- * 通知demo（感性认识）
+####`	通知demo（感性认识）`
  * 通知notification.java类详解
 	1. 路径：frameworks/base/core/java/android/app/Notification.java
 	2. 作用：封装了所有通知的信息，使用见通知demo和doc文档
-	3. //todo 通知是怎么传递到systeui的以显示详解
-	4. //类的组织原理（类部类的机制）
- * 启动流程大致原理
+	3. 传递方式
+        * 实现了Parcelable 接口
+        * 创见Notification.aidl文件
+        * 通过NotificationManagerSever 进行管理
+        * 通过ipc进程间通信机制进行传递
+	4. //类的组织原理（类部类的机制） //todo 类管理详解
+ * 启动流程
 	1. 相关源码的位置
 
 	```java
@@ -223,16 +231,89 @@
 
 ##2. systemui的介绍
 
-			1)状态栏信息显示，比如电池，wifi信号，3G/4G等icon显示
-			2)通知面板，比如系统消息，第三方应用消息，都是在通知面板显示。
-			3)近期任务栏显示面板。比如长按主页或近期任务快捷键，可以显示近期使用的应用。
-			4)提供截图服务。比如电源+音量加可以截图。
-			5)提供壁纸服务。比如壁纸的显示。
-			6)提供屏保服务。
-			7)系统UI显示。比如系统事件到来时，显示系统UI提示用户。
+1)状态栏信息显示，比如电池，wifi信号，3G/4G等icon显示
+2)通知面板，比如系统消息，第三方应用消息，都是在通知面板显示。
+3)近期任务栏显示面板。比如长按主页或近期任务快捷键，可以显示近期使用的应用。
+4)提供截图服务。比如电源+音量加可以截图。
+5)提供壁纸服务。比如壁纸的显示。	
+6)提供屏保服务。
+7)系统UI显示。比如系统事件到来时，显示系统UI提示用户。
 
 1. AndroidMani.xml和android.mk 文件
+
 2. systemui的代码目录结构和系统的整体架构
+	```bash
+systemui
+        ├── docs											各种文档
+        ├── ext												 
+        │   └── src
+        │       └── com
+        │           └── mediatek
+        │               └── systemui
+        │                   └── ext
+        ├── extcb
+        │   └── com
+        │       └── mediatek
+        │           └── systemui
+        │               └── statusbar
+        │                   └── extcb
+        ├── res
+        ├── res_ext
+        ├── src
+        │   └── com
+        │       ├── android
+        │       │   └── systemui
+        │       │       ├── assist
+        │       │       ├── doze         瞌睡
+        │       │       ├── egg         彩蛋  adb shell am start -n com.android.systemui/com.android.systemui.egg.MLandActivity
+        │       │       ├── keyguard
+        │       │       ├── media
+        │       │       ├── net
+        │       │       ├── power
+        │       │       ├── qs
+        │       │       │   └── tiles
+        │       │       ├── recents
+        │       │       │   ├── misc
+        │       │       │   ├── model
+        │       │       │   └── views
+        │       │       ├── screenshot
+        │       │       ├── settings
+        │       │       ├── statusbar
+        │       │       │   ├── phone
+        │       │       │   ├── policy
+        │       │       │   ├── stack
+        │       │       │   └── tv
+        │       │       ├── tuner
+        │       │       ├── usb
+        │       │       └── volume
+        │       └── mediatek
+        │           └── systemui
+        │               ├── floatpanel
+        │               ├── qs
+        │               │   └── tiles
+        │               │       └── ext
+        │               └── statusbar
+        │                   ├── defaultaccount
+        │                   ├── networktype
+        │                   ├── policy
+        │                   └── util
+        └── tests
+            ├── res
+            │   └── layout
+            ├── res_ext
+            │   └── drawable
+            └── src
+                └── com
+                    ├── android
+                    │   └── systemui
+                    │       ├── screenshot
+                    │       └── statusbar
+                    │           └── policy
+                    └── mediatek
+                        └── systemui
+                            └── notification
+    
+    ```
 3. systemui的启动流程
 4. 如何实现最近应用列表的清除功能
 5. 其他
@@ -242,7 +323,7 @@
 1.systemu如何显示通知，如何分类，如何解析的
 2.动画的实现
 3.交互：点击滑动后做了些什么
-* 
+*
 ##4. 通知的调试
 1.怎样确认通知的属于那个应用
 2.logcat 怎么看
